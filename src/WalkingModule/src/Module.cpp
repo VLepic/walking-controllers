@@ -1194,7 +1194,7 @@ bool WalkingModule::updateModule()
             b.addFloat64(p[2]);
 
             double qx, qy, qz, qw;
-            relTransform.getRotation().toQuaternion(qx, qy, qz, qw);
+            relTransform.getRotation().asQuaternion(qx, qy, qz, qw);
 
             b.addFloat64(qx);
             b.addFloat64(qy);
