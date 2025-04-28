@@ -140,6 +140,9 @@ bool WalkingModule::configure(yarp::os::ResourceFinder &rf)
     m_removeZMPOffset = rf.check("remove_zmp_offset", yarp::os::Value(false)).asBool();
     m_maxTimeToWaitForGoal = rf.check("max_time_to_wait_for_goal", yarp::os::Value(1.0)).asFloat64();
 
+    m_tfPort.open("/walking/tf:o");
+
+
     m_goalScaling.resize(3);
     if (!YarpUtilities::getVectorFromSearchable(rf, "goal_port_scaling", m_goalScaling))
     {
@@ -1141,6 +1144,7 @@ bool WalkingModule::updateModule()
         }
 
 
+
         propagateTime();
 
         // advance all the signals
@@ -1162,6 +1166,50 @@ bool WalkingModule::updateModule()
         m_profiler->profiling();
 
         m_profiler->setInitTime("Loop");
+
+        std::vector<std::pair<std::string, std::string>> transforms = {
+            {"base_link", "waist_imu_link"},
+            {"base_link", "head_imu_link"},
+            {"base_link", "realsense_d435_link"},
+            {"base_link", "head"},  // <- toto je pro Lidar!
+        };
+
+
+        for (const auto& tf : transforms)
+        {
+            const auto& parent = tf.first;
+            const auto& child = tf.second;
+
+            iDynTree::Transform relTransform;
+            bool ok = kinDynWrapper.getRelativeTransform(parent, child, relTransform);
+            if (!ok)
+            {
+                yError() << "Failed to compute transform from" << parent << "to" << child;
+                continue;
+            }
+
+            yarp::os::Bottle& b = m_tfPort.prepare();
+            b.clear();
+
+            b.addString(parent);
+            b.addString(child);
+
+            const iDynTree::Position& p_world_base = relTransform.getPosition();
+            b.addFloat64(p_world_base[0]);
+            b.addFloat64(p_world_base[1]);
+            b.addFloat64(p_world_base[2]);
+
+            iDynTree::Rotation R = relTransform.getRotation();
+            double qx, qy, qz, qw;
+            iDynTree::toQuaternion(R, qx, qy, qz, qw);
+            b.addFloat64(qx);
+            b.addFloat64(qy);
+            b.addFloat64(qz);
+            b.addFloat64(qw);
+
+
+            m_tfPort.write();
+        }
     }
     return true;
 }

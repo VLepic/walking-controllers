@@ -95,6 +95,9 @@ namespace WalkingControllers
         std::unique_ptr<YarpUtilities::TransformHelper> m_transformHelper; /**< Transform server/client helper. */
         BipedalLocomotion::Contacts::GlobalCoPEvaluator m_globalCoPEvaluator;
 
+        yarp::os::BufferedPort<yarp::os::Bottle> m_tfPort;
+
+
         std::vector<std::pair<iDynTree::FrameIndex, std::string>> m_framesToStream; /**< Frames to send to the transform server. */
 
         double m_additionalRotationWeightDesired; /**< Desired additional rotational weight matrix. */
