@@ -1168,10 +1168,10 @@ bool WalkingModule::updateModule()
         m_profiler->setInitTime("Loop");
 
         std::vector<std::pair<std::string, std::string>> transforms = {
-            {"base_link", "torso"},
-            {"base_link", "head"},
-            {"base_link", "l_foot"},
-            {"base_link", "r_foot"},
+            {"base_link", "head_imu_0"},
+            {"base_link", "realsense"},
+            {"base_link", "head_laser_frame"},
+            {"base_link", "waist_imu_0"},
         };
 
 
