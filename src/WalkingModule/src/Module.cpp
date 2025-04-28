@@ -1168,43 +1168,50 @@ bool WalkingModule::updateModule()
         m_profiler->setInitTime("Loop");
 
         std::vector<std::pair<std::string, std::string>> transforms = {
-            {"base_link", "head_imu_0"},
-            {"base_link", "realsense"},
-            {"base_link", "head_laser_frame"},
-            {"base_link", "waist_imu_0"},
+        {"base_link", "head_imu_0"},
+        {"base_link", "realsense"},
+        {"base_link", "head_laser_frame"},
+        {"base_link", "waist_imu_0"},
         };
 
+        // Připravíme jeden velký Bottle
+        yarp::os::Bottle& b = m_tfPort.prepare();
+        b.clear();
 
-
+        // Přidáme všechny transformace do jednoho Bottle
         for (const auto& tf : transforms)
         {
             const auto& parent = tf.first;
             const auto& child = tf.second;
 
-            iDynTree::Transform relTransform = m_FKSolver->getKinDyn()->getRelativeTransform(parent, child);
+            iDynTree::Transform relTransform;
+            try {
+                relTransform = m_FKSolver->getKinDyn()->getRelativeTransform(parent, child);
+            } catch (...) {
+                yError() << "Failed to get relative transform from " << parent << " to " << child;
+                continue;
+            }
 
-            yarp::os::Bottle& b = m_tfPort.prepare();
-            b.clear();
+            yarp::os::Bottle& tfBottle = b.addList(); // každá TF je vlastní seznam
 
-            b.addString(parent);
-            b.addString(child);
+            tfBottle.addString(parent);
+            tfBottle.addString(child);
 
             const iDynTree::Position& p = relTransform.getPosition();
-            b.addFloat64(p[0]);
-            b.addFloat64(p[1]);
-            b.addFloat64(p[2]);
+            tfBottle.addFloat64(p[0]);
+            tfBottle.addFloat64(p[1]);
+            tfBottle.addFloat64(p[2]);
 
             iDynTree::Vector4 quat = relTransform.getRotation().asQuaternion();
-
-
-            b.addFloat64(quat[0]);
-            b.addFloat64(quat[1]);
-            b.addFloat64(quat[2]);
-            b.addFloat64(quat[3]);
-
-
-            m_tfPort.write();
+            tfBottle.addFloat64(quat[0]);
+            tfBottle.addFloat64(quat[1]);
+            tfBottle.addFloat64(quat[2]);
+            tfBottle.addFloat64(quat[3]);
         }
+
+        // A teprve teď jeden write
+        m_tfPort.write();
+
 
 
     }
