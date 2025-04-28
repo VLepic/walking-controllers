@@ -1193,13 +1193,13 @@ bool WalkingModule::updateModule()
             b.addFloat64(p[1]);
             b.addFloat64(p[2]);
 
-            double qx, qy, qz, qw;
-            relTransform.getRotation().asQuaternion(qx, qy, qz, qw);
+            iDynTree::Vector4 quat = relTransform.getRotation().asQuaternion();
 
-            b.addFloat64(qx);
-            b.addFloat64(qy);
-            b.addFloat64(qz);
-            b.addFloat64(qw);
+            b.addFloat64(quat[0]);
+            b.addFloat64(quat[1]);
+            b.addFloat64(quat[2]);
+            b.addFloat64(quat[3]);
+
 
             m_tfPort.write();
         }
