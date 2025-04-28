@@ -1180,13 +1180,7 @@ bool WalkingModule::updateModule()
             const auto& parent = tf.first;
             const auto& child = tf.second;
 
-            iDynTree::Transform relTransform;
-            bool ok = m_FKSolver->getKinDyn()->getRelativeTransform(parent, child, relTransform);
-            if (!ok)
-            {
-                yError() << "Failed to compute transform from" << parent << "to" << child;
-                continue;
-            }
+            iDynTree::Transform relTransform = m_FKSolver->getKinDyn()->getRelativeTransform(parent, child);
 
             yarp::os::Bottle& b = m_tfPort.prepare();
             b.clear();
@@ -1199,14 +1193,17 @@ bool WalkingModule::updateModule()
             b.addFloat64(p[1]);
             b.addFloat64(p[2]);
 
-            iDynTree::Quaternion quat = relTransform.getRotation().asQuaternion();
-            b.addFloat64(quat.x());
-            b.addFloat64(quat.y());
-            b.addFloat64(quat.z());
-            b.addFloat64(quat.w());
+            double qx, qy, qz, qw;
+            relTransform.getRotation().toQuaternion(qx, qy, qz, qw);
+
+            b.addFloat64(qx);
+            b.addFloat64(qy);
+            b.addFloat64(qz);
+            b.addFloat64(qw);
 
             m_tfPort.write();
         }
+
 
     }
     return true;
