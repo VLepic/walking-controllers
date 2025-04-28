@@ -1168,11 +1168,12 @@ bool WalkingModule::updateModule()
         m_profiler->setInitTime("Loop");
 
         std::vector<std::pair<std::string, std::string>> transforms = {
-            {"base_link", "waist_imu_link"},
-            {"base_link", "head_imu_link"},
-            {"base_link", "realsense_d435_link"},
-            {"base_link", "head"},  // <- toto je pro Lidar!
+            {"base_link", "torso"},
+            {"base_link", "head"},
+            {"base_link", "l_foot"},
+            {"base_link", "r_foot"},
         };
+
 
 
         for (const auto& tf : transforms)
@@ -1194,6 +1195,7 @@ bool WalkingModule::updateModule()
             b.addFloat64(p[2]);
 
             iDynTree::Vector4 quat = relTransform.getRotation().asQuaternion();
+
 
             b.addFloat64(quat[0]);
             b.addFloat64(quat[1]);
