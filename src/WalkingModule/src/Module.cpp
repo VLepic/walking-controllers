@@ -141,6 +141,8 @@ bool WalkingModule::configure(yarp::os::ResourceFinder &rf)
     m_maxTimeToWaitForGoal = rf.check("max_time_to_wait_for_goal", yarp::os::Value(1.0)).asFloat64();
 
     m_tfPort.open("/walking/tf:o");
+    m_odometryPort.open("/walking/odom:o");
+
 
 
     m_goalScaling.resize(3);
@@ -1209,22 +1211,20 @@ bool WalkingModule::updateModule()
         }
 
         try {
+            yarp::os::Bottle& odomBottle = m_odometryPort.prepare();
+            odomBottle.clear();
+
             iDynTree::Transform world_H_base = m_FKSolver->getKinDyn()->getWorldBaseTransform();
-
-            yarp::os::Bottle& odomTf = b.addList();
-            odomTf.addString("world");
-            odomTf.addString("base_link");
-
             const iDynTree::Position& pos = world_H_base.getPosition();
-            odomTf.addFloat64(pos[0]);
-            odomTf.addFloat64(pos[1]);
-            odomTf.addFloat64(pos[2]);
-
             const iDynTree::Vector4& quat = world_H_base.getRotation().asQuaternion();
-            odomTf.addFloat64(quat[0]);
-            odomTf.addFloat64(quat[1]);
-            odomTf.addFloat64(quat[2]);
-            odomTf.addFloat64(quat[3]);
+
+            odomBottle.addFloat64(pos[0]);
+            odomBottle.addFloat64(pos[1]);
+            odomBottle.addFloat64(pos[2]);
+            odomBottle.addFloat64(quat[0]);
+            odomBottle.addFloat64(quat[1]);
+            odomBottle.addFloat64(quat[2]);
+            odomBottle.addFloat64(quat[3]);
         } catch (...) {
             yError() << "Failed to get world -> base_link transform.";
         }

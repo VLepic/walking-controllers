@@ -96,6 +96,7 @@ namespace WalkingControllers
         BipedalLocomotion::Contacts::GlobalCoPEvaluator m_globalCoPEvaluator;
 
         yarp::os::BufferedPort<yarp::os::Bottle> m_tfPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> m_odometryPort;
 
 
         std::vector<std::pair<iDynTree::FrameIndex, std::string>> m_framesToStream; /**< Frames to send to the transform server. */
