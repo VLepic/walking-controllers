@@ -1168,13 +1168,12 @@ bool WalkingModule::updateModule()
         m_profiler->setInitTime("Loop");
 
         std::vector<std::pair<std::string, std::string>> transforms = {
-        {"base_link", "head_imu_0"},
-        {"base_link", "realsense"},
-        {"base_link", "head_laser_frame"},
-        {"base_link", "waist_imu_0"},
+            {"base_link", "head_imu_0"},
+            {"base_link", "realsense"},
+            {"base_link", "head_laser_frame"},
+            {"base_link", "waist_imu_0"},
         };
 
-        // Připravíme jeden velký Bottle
         yarp::os::Bottle& b = m_tfPort.prepare();
         b.clear();
 
@@ -1192,7 +1191,7 @@ bool WalkingModule::updateModule()
                 continue;
             }
 
-            yarp::os::Bottle& tfBottle = b.addList(); // každá TF je vlastní seznam
+            yarp::os::Bottle& tfBottle = b.addList();
 
             tfBottle.addString(parent);
             tfBottle.addString(child);
@@ -1209,8 +1208,30 @@ bool WalkingModule::updateModule()
             tfBottle.addFloat64(quat[3]);
         }
 
-        // A teprve teď jeden write
+        try {
+            iDynTree::Transform world_H_base = m_FKSolver->getKinDyn()->getWorldBaseTransform();
+
+            yarp::os::Bottle& odomTf = b.addList();
+            odomTf.addString("world");
+            odomTf.addString("base_link");
+
+            const iDynTree::Position& pos = world_H_base.getPosition();
+            odomTf.addFloat64(pos[0]);
+            odomTf.addFloat64(pos[1]);
+            odomTf.addFloat64(pos[2]);
+
+            const iDynTree::Vector4& quat = world_H_base.getRotation().asQuaternion();
+            odomTf.addFloat64(quat[0]);
+            odomTf.addFloat64(quat[1]);
+            odomTf.addFloat64(quat[2]);
+            odomTf.addFloat64(quat[3]);
+        } catch (...) {
+            yError() << "Failed to get world -> base_link transform.";
+        }
+
         m_tfPort.write();
+
+
 
 
 
