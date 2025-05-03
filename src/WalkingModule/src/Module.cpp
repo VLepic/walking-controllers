@@ -1229,6 +1229,7 @@ bool WalkingModule::updateModule()
             yError() << "Failed to get world -> base_link transform.";
         }
 
+        m_odometryPort.write();
         m_tfPort.write();
 
 
